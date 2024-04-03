@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Word Display</title>
-    <link rel="stylesheet" href="style.css"> <!-- External CSS for better caching and performance -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- External CSS for better caching and performance -->
     <style>
-        body, html {
+        body,
+        html {
             height: 100%;
             margin: 0;
             display: flex;
@@ -14,9 +17,12 @@
             align-items: center;
             background-color: #f5f0dc;
         }
+
         #startButton {
-            margin: 20px 0; /* Combined top and bottom margin for simplification */
+            margin: 20px 0;
+            /* Combined top and bottom margin for simplification */
         }
+
         #centerContent {
             display: flex;
             flex-direction: column;
@@ -24,36 +30,47 @@
             align-items: center;
             flex-grow: 1;
         }
+
         #wordContainer {
             font-size: 48px;
             visibility: hidden;
         }
+
         #info {
-            margin: 20px 0; 
+            margin: 20px 0;
             opacity: 0.2;
         }
     </style>
 </head>
+
 <body>
     <header>
         <!-- Placeholder for potential navigation or header content -->
+
     </header>
     <main id="centerContent">
+
         <button id="startButton">Start</button>
         <section id="wordContainer"></section>
     </main>
+    <input type="range" id="speedRange" min="1" max="100" value="50">
+    <label for="speedRange">milliseconds per word</label>
     <footer id="info">
+
         <!-- Moved info into footer for semantic structure -->
     </footer>
 
     <script>
         function displayWords(words) {
             let index = 0;
-            const startTime = Date.now();
+            let startTime = Date.now();
+            let speed = parseInt(document.getElementById('speedRange').value);
+
+            const speedRange = document.getElementById('speedRange');
             const container = document.getElementById('wordContainer');
             const info = document.getElementById('info');
 
-            const speed = 175; // 175 milliseconds per word
+
 
             container.style.visibility = 'visible';
 
@@ -66,25 +83,31 @@
 
                     let elapsedTime = (Date.now() - startTime) / 1000;
                     let elapsedTimeInMinutes = elapsedTime / 60;
-                    const wordsPerMinute = Math.round(60000 / speed);
+                    const wordsPerMinute = Math.round(6000/speed);
                     let wordsLeft = words.length - index;
-                    info.innerHTML = `Time: ${elapsedTime.toFixed(1)} seconds | Words: ${index} | Words Left: ${wordsLeft} | WPM: ${wordsPerMinute}`;
+                    info.innerHTML = `Time: ${elapsedTime.toFixed(1)} seconds | Words: ${index} | Words Left: ${wordsLeft} | WPM: ${speed}`;
 
 
-                    setTimeout(showNextWord, speed);
+                    setTimeout(showNextWord, wordsPerMinute);
                 }
             }
 
-            document.getElementById('startButton').onclick = function() {
+
+            speedRange.addEventListener('input', function () {
+                speed = parseInt(speedRange.value);
+
+            });
+            document.getElementById('startButton').onclick = function () {
                 this.style.display = 'none';
                 showNextWord();
             };
         }
 
         // Ensure words data is correctly formatted or provided
-        window.onload = function() {
+        window.onload = function () {
             displayWords({{ words | tojson | safe }});
-        };
+      };
     </script>
 </body>
+
 </html>
