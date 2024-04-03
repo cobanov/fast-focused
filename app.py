@@ -6,7 +6,7 @@ app = Flask(__name__)
 @app.route("/")
 def index():
 
-    with open("sucveceza.txt", "r") as file:
+    with open("sucveceza.txt", "r", encoding="utf8") as file:
         text = file.read()
 
     words = text.split()  # Split the text into words
