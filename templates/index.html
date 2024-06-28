@@ -1,92 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Word Display</title>
-    <link rel="stylesheet" href="style.css" />
-    <!-- External CSS for better caching and performance -->
-    <style>
-      body,
-      html {
-        height: 100%;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        background-color: #f5f0dc;
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Word Display</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- External CSS for better caching and performance -->
+  <style>
+    body,
+    html {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      background-color: #f5f0dc;
+    }
+
+    #startButton {
+      margin: 20px 0;
+      /* Combined top and bottom margin for simplification */
+    }
+
+    #centerContent {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      flex-grow: 1;
+    }
+
+    #wordContainer {
+      font-size: 48px;
+      visibility: hidden;
+    }
+
+    #info {
+      margin: 20px 0;
+      opacity: 0.2;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <!-- Placeholder for potential navigation or header content -->
+  </header>
+  <main id="centerContent">
+    <button id="startButton">Start</button>
+    <section id="wordContainer"></section>
+  </main>
+  <button id="pauseButton">Pause</button>
+  <br>
+  <input type="range" min="100" max="500" value="343" id="wpmSlider">
+  <footer id="info">
+    <!-- Moved info into footer for semantic structure -->
+  </footer>
+
+  <script>
+    function displayWords(words) {
+      let index = 0;
+      let timeOutId = null;
+      const startTime = Date.now();
+      const container = document.getElementById('wordContainer');
+      const startButton = document.getElementById('startButton');
+      const pauseButton = document.getElementById('pauseButton');
+      const wpmSlider = document.getElementById('wpmSlider');
+      const info = document.getElementById('info');
+
+      let speed = 175; // 175 milliseconds per word
+
+      container.style.visibility = 'visible';
+      pauseButton.style.display = 'none';
+      wpmSlider.style.display = 'none';
+
+      function showNextWord() {
+        if (index < words.length) {
+          pauseButton.style.display = 'block';
+          wpmSlider.style.display = 'block';
+          const word = words[index++];
+          const firstTwoLetters = word.substring(0, 2);
+          const restOfWord = word.substring(2);
+          container.innerHTML = `<strong>${firstTwoLetters}</strong>${restOfWord}`;
+
+          let elapsedTime = (Date.now() - startTime) / 1000;
+          let elapsedTimeInMinutes = elapsedTime / 60;
+          const wordsPerMinute = Math.round(60000 / speed);
+          let wordsLeft = words.length - index;
+          info.innerHTML = `Time: ${elapsedTime.toFixed(1)} seconds | Words: ${index} | Words Left: ${wordsLeft} | WPM: ${wordsPerMinute}`;
+          timeOutId = setTimeout(showNextWord, speed);
+        }
       }
-      #startButton {
-        margin: 20px 0; /* Combined top and bottom margin for simplification */
-      }
-      #centerContent {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        flex-grow: 1;
-      }
-      #wordContainer {
-        font-size: 48px;
-        visibility: hidden;
-      }
-      #info {
-        margin: 20px 0;
-        opacity: 0.2;
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <!-- Placeholder for potential navigation or header content -->
-    </header>
-    <main id="centerContent">
-      <button id="startButton">Start</button>
-      <section id="wordContainer"></section>
-    </main>
-    <footer id="info">
-      <!-- Moved info into footer for semantic structure -->
-    </footer>
 
-    <script>
-      function displayWords(words) {
-          let index = 0;
-          const startTime = Date.now();
-          const container = document.getElementById('wordContainer');
-          const info = document.getElementById('info');
-
-          const speed = 175; // 175 milliseconds per word
-
-          container.style.visibility = 'visible';
-
-          function showNextWord() {
-              if (index < words.length) {
-                  const word = words[index++];
-                  const firstTwoLetters = word.substring(0, 2);
-                  const restOfWord = word.substring(2);
-                  container.innerHTML = `<strong>${firstTwoLetters}</strong>${restOfWord}`;
-
-                  let elapsedTime = (Date.now() - startTime) / 1000;
-                  let elapsedTimeInMinutes = elapsedTime / 60;
-                  const wordsPerMinute = Math.round(60000 / speed);
-                  let wordsLeft = words.length - index;
-                  info.innerHTML = `Time: ${elapsedTime.toFixed(1)} seconds | Words: ${index} | Words Left: ${wordsLeft} | WPM: ${wordsPerMinute}`;
-
-
-                  setTimeout(showNextWord, speed);
-              }
-          }
-
-          document.getElementById('startButton').onclick = function() {
-              this.style.display = 'none';
-              showNextWord();
-          };
-      }
-
-      // Ensure words data is correctly formatted or provided
-      window.onload = function() {
-          displayWords({{ words | tojson | safe }});
+      wpmSlider.onchange = function () {
+        const wpm = this.value;
+        speed = Math.round(60000 / wpm);
+        if (timeOutId) {
+          clearTimeout(timeOutId);
+          timeOutId = setTimeout(showNextWord, speed);
+        }
       };
-    </script>
-  </body>
+
+      startButton.onclick = function () {
+        this.style.display = 'none';
+        showNextWord();
+      };
+
+      pauseButton.onclick = function () {
+        if (timeOutId) {
+          this.innerText = 'Resume';
+          clearTimeout(timeOutId);
+          timeOutId = null;
+        } else {
+          this.innerText = 'Pause';
+          showNextWord();
+        }
+      };
+
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+          this.innerText = 'Resume';
+          clearTimeout(timeOutId);
+          timeOutId = null;
+        }
+      });
+
+      document.body.onkeyup = function (e) {
+        if (e.key == " " || e.code == "Space" || e.keyCode == 32) {
+          if (timeOutId) {
+            clearTimeout(timeOutId);
+            timeOutId = null;
+            pauseButton.innerText = 'Resume';
+          } else {
+            startButton.style.display = 'none';
+            pauseButton.innerText = 'Pause';
+            showNextWord();
+          }
+        }
+      };
+    }
+
+    // Ensure words data is correctly formatted or provided
+    window.onload = function () {
+      displayWords({{ words | tojson | safe }});
+    };
+  </script>
+</body>
+
 </html>
